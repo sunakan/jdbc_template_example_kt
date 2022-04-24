@@ -1,4 +1,4 @@
-package dev.sunabako.jdbc_template_example_kt
+package dev.sunabako.jdbc_template_example_kt.customer
 
 import org.springframework.jdbc.core.RowMapper
 import java.sql.ResultSet

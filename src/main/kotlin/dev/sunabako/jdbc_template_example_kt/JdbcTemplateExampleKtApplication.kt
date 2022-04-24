@@ -1,51 +1,38 @@
 package dev.sunabako.jdbc_template_example_kt
 
+import dev.sunabako.jdbc_template_example_kt.customer.runForCustomer
+import dev.sunabako.jdbc_template_example_kt.customer2.runForCustomer2
+import dev.sunabako.jdbc_template_example_kt.customer3.runForCustomer3
+import dev.sunabako.jdbc_template_example_kt.product.ProductRepository
+import dev.sunabako.jdbc_template_example_kt.product.runForProduct
 import org.springframework.boot.ApplicationArguments
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.jdbc.core.JdbcTemplate
-import java.util.function.Consumer
-import java.util.stream.Collectors
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 
 @SpringBootApplication
-class JdbcTemplateExampleKtApplication(@Autowired val jdbcTemplate: JdbcTemplate) : ApplicationRunner {
-
-    override fun run(args: ApplicationArguments) {
-        println("----------------[ 1 ]")
-        //jdbcTemplate.execute("DROP TABLE customers IF EXISTS")
-
-        println("----------------[ 2 ]")
-        //jdbcTemplate.execute("CREATE TABLE customers(id SERIAL, last_name VARCHAR(255), first_name VARCHAR(255))")
-
-        println("----------------[ 3 ]")
-        val splitUpNames: List<Array<String>> = listOf("田中 太郎", "鈴木 一郎", "高橋 次郎", "田中 一郎")
-            .stream()
-            .map { name: String -> name.split(" ").toTypedArray() }
-            .collect(Collectors.toList())
-
-        println("----------------[ 4 ]")
-        splitUpNames.forEach(Consumer { name: Array<String> ->
-            println(String.format("INSERT 顧客 レコード for %s %s", name[0], name[1]))
-        })
-
-        println("----------------[ 5 ]")
-        jdbcTemplate.batchUpdate("INSERT INTO customers(first_name, last_name) VALUES (?,?)", splitUpNames)
-
-        println("----------------[ 6 ]")
-        jdbcTemplate.queryForStream(
-            "SELECT id, first_name, last_name FROM customers WHERE first_name = ?",
-            CustomerRowMapper(),
-            *arrayOf<Any>("田中")
-        ).forEach { customer: Customer -> println(customer) }
-        println("----------------[ 7 ]")
-    }
+class JdbcTemplateExampleKtApplication(
+    val jdbcTemplate: JdbcTemplate,
+    val namedJdbcTemplate: NamedParameterJdbcTemplate,
+    val productRepository: ProductRepository,
+) : ApplicationRunner {
 
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             runApplication<JdbcTemplateExampleKtApplication>(*args)
+        }
+    }
+
+    override fun run(args: ApplicationArguments) {
+        val num = 3
+        when (num) {
+            0 -> runForCustomer(jdbcTemplate)
+            1 -> runForCustomer2(namedJdbcTemplate)
+            2 -> runForCustomer3(namedJdbcTemplate)
+            else -> runForProduct(productRepository)
         }
     }
 }
